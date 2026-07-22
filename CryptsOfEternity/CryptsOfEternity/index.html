@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>CRYPTS OF ETERNITY</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<!-- ═══ PRE-LOADER ═══ -->
+<div id="preloader">
+  <div id="pl-frame"></div>
+  <div id="pl-scan"></div>
+  <div id="pl-content">
+    <div id="pl-icon-wrap"><canvas id="pl-icon-canvas" width="24" height="24"></canvas></div>
+    <div id="pl-title">CRYPTS</div>
+    <div id="pl-subtitle">of &nbsp; Eternity</div>
+    <div id="pl-bar-wrap"><div id="pl-bar"></div></div>
+    <div id="pl-status">Initialisation…</div>
+    <div id="pl-pct">0%</div>
+  </div>
+</div>
+
+<!-- ═══ FX CANVAS (transitions iris) ═══ -->
+<canvas id="fx-canvas"></canvas>
+
+<!-- ═══ TITLE SCREEN ═══ -->
+<div id="title-screen">
+  <div id="title-frame"></div>
+  <div id="title-inner">
+
+    <!-- LEFT: Logo -->
+    <div id="title-logo-block">
+      <div id="title-sigil">☽✦☾</div>
+      <div id="title-eyebrow">Un roguelike des profondeurs</div>
+
+      <!-- Titre avec lignes latérales + sable -->
+      <div id="title-main-wrap">
+        <canvas id="title-sand" aria-hidden="true"></canvas>
+        <div class="title-flank" id="title-flank-l">
+          <div class="tf-line"></div>
+          <div class="tf-ticks">
+            <span class="tf-gem"></span>
+            <span class="tf-dash"></span>
+            <span class="tf-gem-sm"></span>
+            <span class="tf-dash"></span>
+            <span class="tf-gem-sm"></span>
+          </div>
+        </div>
+        <div id="title-main">CRYPTS</div>
+        <div class="title-flank" id="title-flank-r">
+          <div class="tf-ticks">
+            <span class="tf-gem-sm"></span>
+            <span class="tf-dash"></span>
+            <span class="tf-gem-sm"></span>
+            <span class="tf-dash"></span>
+            <span class="tf-gem"></span>
+          </div>
+          <div class="tf-line"></div>
+        </div>
+      </div>
+      <div id="title-of">of&nbsp;&nbsp;&nbsp;Eternity</div>
+      <div id="title-tagline">L'obscurité vous attend…</div>
+      <div class="title-divider">
+        <div class="title-divider-line"></div>
+        <div class="title-divider-gem"></div>
+        <div class="title-divider-line"></div>
+        <div class="title-divider-gem"></div>
+        <div class="title-divider-line"></div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Navigation -->
+    <nav id="title-nav">
+      <button class="title-nav-btn tnb-primary" onclick="TitleUI.startGame()" onmouseenter="MenuSFX.hover()">
+        <span class="tnb-icon">⚔</span>Nouvelle Partie
+      </button>
+      <button class="title-nav-btn tnb-primary" id="btn-continue" onclick="TitleUI.continueGame()" onmouseenter="MenuSFX.hover()" style="display:none">
+        <span class="tnb-icon">▶</span>Continuer
+      </button>
+      <div class="tnb-sep"></div>
+      <button class="title-nav-btn" onclick="TitleUI.open('options')" onmouseenter="MenuSFX.hover()">
+        <span class="tnb-icon">⚙</span>Options
+      </button>
+      <button class="title-nav-btn" onclick="TitleUI.open('achievements')" onmouseenter="MenuSFX.hover()">
+        <span class="tnb-icon">🏆</span>Succès
+      </button>
+      <button class="title-nav-btn" onclick="TitleUI.open('credits')" onmouseenter="MenuSFX.hover()">
+        <span class="tnb-icon">📜</span>Crédits
+      </button>
+      <div class="tnb-sep"></div>
+      <button class="title-nav-btn tnb-danger" onclick="TitleUI.quit()" onmouseenter="MenuSFX.hover()">
+        <span class="tnb-icon">✕</span>Quitter
+      </button>
+    </nav>
+  </div>
+  <div id="title-version">Crypts of Eternity — v4</div>
+</div>
+
+<!-- ═══ LOADING SCREEN ═══ -->
+<div id="loading-screen">
+  <div id="loading-sigil">☽✦☾</div>
+  <div id="loading-title">Chargement</div>
+  <div id="loading-flavor">Génération des cryptes…</div>
+  <div id="loading-bar-wrap"><div id="loading-bar"></div></div>
+  <div id="loading-pct">0%</div>
+</div>
+
+<!-- ═══ SUB-PANEL: OPTIONS ═══ -->
+<div class="title-subpanel" id="panel-options">
+  <div class="tsp-box">
+    <button class="tsp-close" onclick="TitleUI.close('options')">✕ Fermer</button>
+    <div class="tsp-eyebrow">Configuration</div>
+    <div class="tsp-title">Options</div>
+    <div class="tsp-rule"></div>
+
+    <div class="opt-section">
+      <div class="opt-section-title">Audio</div>
+      <div class="opt-row">
+        <span class="opt-label">Musique</span>
+        <input type="range" class="opt-slider" id="opt-vol-music" min="0" max="100" value="55"
+          oninput="Music.setVolume(this.value/100);document.getElementById('opt-music-val').textContent=this.value+'%'">
+        <span class="opt-val" id="opt-music-val">55%</span>
+      </div>
+      <div class="opt-row">
+        <span class="opt-label">Effets sonores</span>
+        <input type="range" class="opt-slider" id="opt-vol-sfx" min="0" max="100" value="55"
+          oninput="SFX.setVolume(this.value/100);document.getElementById('opt-sfx-val').textContent=this.value+'%'">
+        <span class="opt-val" id="opt-sfx-val">55%</span>
+      </div>
+      <div class="opt-row">
+        <span class="opt-label">Musique activée</span>
+        <div class="opt-toggle">
+          <button class="opt-toggle-btn active" id="opt-music-on" onclick="TitleUI.setMusicEnabled(true)">ON</button>
+          <button class="opt-toggle-btn" id="opt-music-off" onclick="TitleUI.setMusicEnabled(false)">OFF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="opt-section">
+      <div class="opt-section-title">Affichage</div>
+      <div class="opt-row">
+        <span class="opt-label">Particules</span>
+        <div class="opt-toggle">
+          <button class="opt-toggle-btn active" id="opt-particles-on" onclick="TitleUI.setParticles(true)">ON</button>
+          <button class="opt-toggle-btn" id="opt-particles-off" onclick="TitleUI.setParticles(false)">OFF</button>
+        </div>
+      </div>
+      <div class="opt-row">
+        <span class="opt-label">Lignes de balayage</span>
+        <div class="opt-toggle">
+          <button class="opt-toggle-btn active" id="opt-scan-on" onclick="TitleUI.setScanlines(true)">ON</button>
+          <button class="opt-toggle-btn" id="opt-scan-off" onclick="TitleUI.setScanlines(false)">OFF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="opt-section">
+      <div class="opt-section-title">Gameplay</div>
+      <div class="opt-row">
+        <span class="opt-label">Délai de répétition (ms)</span>
+        <input type="range" class="opt-slider" id="opt-repeat" min="50" max="300" value="200"
+          oninput="G.REPEAT_DELAY=+this.value;document.getElementById('opt-repeat-val').textContent=this.value+'ms'">
+        <span class="opt-val" id="opt-repeat-val">200ms</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ SUB-PANEL: ACHIEVEMENTS ═══ -->
+<div class="title-subpanel" id="panel-achievements">
+  <div class="tsp-box">
+    <button class="tsp-close" onclick="TitleUI.close('achievements')">✕ Fermer</button>
+    <div class="tsp-eyebrow">Exploits & Records</div>
+    <div class="tsp-title">Succès</div>
+    <div class="tsp-rule"></div>
+    <div class="ach-summary" id="ach-summary">0 / 48 débloqués</div>
+    <div class="ach-grid" id="ach-grid"></div>
+  </div>
+</div>
+
+<!-- ═══ SUB-PANEL: CREDITS ═══ -->
+<div class="title-subpanel" id="panel-credits">
+  <div class="tsp-box">
+    <button class="tsp-close" onclick="TitleUI.close('credits')">✕ Fermer</button>
+    <div class="tsp-eyebrow">À propos du jeu</div>
+    <div class="tsp-title">Crédits</div>
+    <div class="tsp-rule"></div>
+
+    <div class="cred-block">
+      <div class="cred-role">Conception & Développement</div>
+      <div class="cred-name">Crypts of Eternity</div>
+      <div class="cred-note">Un roguelike top-down en pixel art généré procéduralement.
+        Explorez des donjons infinis, affrontez des boss redoutables
+        et forgez votre légende dans les profondeurs.</div>
+    </div>
+
+    <div class="cred-rule"></div>
+
+    <div class="cred-block">
+      <div class="cred-role">Moteur de jeu</div>
+      <div class="cred-name">Vanilla JavaScript</div>
+      <div class="cred-note">Aucun framework, aucune dépendance. Canvas 2D natif,
+        Web Audio API pour la musique procédurale et les effets sonores.</div>
+    </div>
+
+    <div class="cred-rule"></div>
+
+    <div class="cred-block">
+      <div class="cred-role">Typographies</div>
+      <div class="cred-name">Google Fonts</div>
+      <div class="cred-note">Cinzel (titres & HUD) · Crimson Pro (texte & lore)</div>
+    </div>
+
+    <div class="cred-rule"></div>
+
+    <div class="cred-block">
+      <div class="cred-role">Fonctionnalités</div>
+      <div class="cred-tech">
+        <span class="cred-tag">Génération procédurale</span>
+        <span class="cred-tag">FOV Raycasting</span>
+        <span class="cred-tag">Web Audio API</span>
+        <span class="cred-tag">Pixel Art Canvas</span>
+        <span class="cred-tag">Système de buffs</span>
+        <span class="cred-tag">Boss fights</span>
+        <span class="cred-tag">Commerce</span>
+        <span class="cred-tag">Éclairage dynamique</span>
+      </div>
+    </div>
+
+    <div class="cred-rule"></div>
+    <div class="cred-block">
+      <div class="cred-role">Version</div>
+      <div class="cred-name" style="font-size:13px;opacity:.6">v4 — 2025</div>
+      <div class="cred-note" style="margin-top:8px;font-style:normal;opacity:.35;font-size:10px">
+        Crypts of Eternity est un projet personnel.<br>
+        Tout le code, les sprites et la musique sont générés procéduralement en temps réel.</div>
+    </div>
+  </div>
+</div>
+
+<canvas id="cur" width="12" height="12"></canvas>
+
+<canvas id="c"></canvas>
+<div id="vig"></div>
+<div id="scan"></div>
+
+<!-- HUD -->
+<div id="hud">
+  <!-- POTIONS À GAUCHE -->
+  <div id="hud-potions" style="display:flex;gap:8px;flex-direction:column;font-family:Cinzel;font-size:11px;font-weight:700;">
+    <div style="padding:7px 10px;border:1px solid rgba(201,168,76,.3);border-radius:5px;background:rgba(40,20,20,.5);color:#ff8888;display:flex;align-items:center;gap:4px;"><span style="font-size:16px;">🧪</span> <span id="hud-hp-potion">0/3</span></div>
+    <div style="padding:7px 10px;border:1px solid rgba(201,168,76,.3);border-radius:5px;background:rgba(20,30,40,.5);color:#88aaff;display:flex;align-items:center;gap:4px;"><span style="font-size:16px;">💙</span> <span id="hud-mana-potion">0/3</span></div>
+  </div>
+  
+  <div class="stat-bar">
+    <div class="bar-label">Vie <span id="hp-val">40/40</span></div>
+    <div class="bar-track"><div class="bar-fill" id="hp-fill" style="width:100%"></div></div>
+    <div class="bar-label">Mana <span id="mp-val">20/20</span></div>
+    <div class="bar-track"><div class="bar-fill" id="mp-fill" style="width:100%"></div></div>
+    <div class="bar-label">⚡ Dash <span id="sta-val">100%</span></div>
+    <div class="bar-track"><div class="bar-fill" id="sta-fill" style="width:100%"></div></div>
+  </div>
+  <div id="center-hud">
+    <div id="player-portrait"><canvas id="portrait-cv" width="54" height="54"></canvas></div>
+    <div id="level-badge">Niveau 1</div>
+    <div id="buffs-row"></div>
+  </div>
+  <div class="stat-bar" style="align-items:flex-start">
+    <div class="bar-label">Expérience <span id="xp-val">0%</span></div>
+    <div class="bar-track"><div class="bar-fill" id="xp-fill" style="width:0%"></div></div>
+    <div style="height:6px"></div>
+    <div id="stat-nums"></div>
+  </div>
+</div>
+
+<div id="msg-log"></div>
+<div id="floor-title"><div id="floor-name">Cryptes des Éternels</div><div id="floor-num">I</div></div>
+<div id="minimap-container"><div id="minimap-label">CARTE</div><canvas id="minimap" width="120" height="120"></canvas></div>
+
+<!-- Corner buttons: pause + music -->
+<div id="corner-btns">
+  <button class="c-btn" id="btn-pause" onclick="G.togglePause()">⏸ PAUSE [ESC]</button>
+  <button class="c-btn" id="btn-music" onclick="Music.toggle()">♪ MUSIQUE</button>
+</div>
+
+<div id="controls-hint">ZQSD / WASD — DÉPLACER<br>SHIFT+DIR — DASH<br>ESPACE — SORT<br>CLIC — ATTAQUER<br>ESC — PAUSE</div>
+<div id="flash"></div>
+
+<!-- Death screen -->
+<div id="death-screen">
+  <div id="death-content">
+    <div id="death-title">MORT</div>
+    <div id="death-sub">L'obscurité vous a englouti…</div>
+    <div id="death-stats"></div>
+    <button class="screen-btn" onclick="G.restart()">Recommencer</button>
+  </div>
+</div>
+
+<!-- Shop screen -->
+<div id="shop-screen">
+  <div id="shop-panel">
+    <div id="shop-header">
+      <div id="shop-eyebrow">Marchand des profondeurs</div>
+      <div id="shop-main-title">BOUTIQUE</div>
+      <div id="shop-gold-bar">💛 Or disponible : <span id="shop-gold-val">0</span></div>
+    </div>
+    <div id="shop-body">
+      <!-- LEFT: Equipment -->
+      <div id="shop-left">
+        <div class="shop-section-title">⚔ Arme équipée &amp; amélioration</div>
+        <div id="weapon-equipped-box">
+          <div id="weapon-eq-icon">⚔️</div>
+          <div id="weapon-eq-info">
+            <div id="weapon-eq-name">Épée courte</div>
+            <div id="weapon-eq-stars"></div>
+            <div id="weapon-eq-desc">Arme de départ</div>
+          </div>
+          <button class="armor-upg-btn" id="weapon-upg-btn" onclick="shopUpgradeWeapon()">+2 ATK<br>💛50</button>
+        </div>
+        <div class="shop-section-title">🛡 Armures — Améliorations permanentes</div>
+        <div id="armor-slots"></div>
+      </div>
+      <!-- RIGHT: Weapons shop -->
+      <div id="shop-right">
+        <div class="shop-section-title">🗡 Arsenal — Acheter une arme</div>
+        <div id="weapons-grid"></div>
+      </div>
+    </div>
+    
+    <!-- POTIONS -->
+    <div style="grid-column:1/-1;margin-top:12px;padding:10px;border-top:1px solid rgba(201,168,76,.15);">
+      <div style="font-family:Cinzel;font-size:10px;font-weight:700;color:rgba(201,168,76,.9);margin-bottom:8px;letter-spacing:1px;">🧪 POTIONS</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <button onclick="shopBuyPotion('hp')" style="padding:8px;background:linear-gradient(135deg,rgba(40,20,20,.6),rgba(20,10,10,.7));border:1px solid #ff6060;border-radius:4px;cursor:pointer;font-family:inherit;color:#ff8888;font-size:8px;font-weight:700;text-align:center;pointer-events:auto;transition:all .2s;">
+          <div style="font-size:14px;margin-bottom:3px;">🧪</div>
+          <div>Vie • +20 PV</div>
+          <div style="font-size:7px;margin:2px 0;color:rgba(255,100,100,.7);">Stock: <span id="hp-potion-stock">0</span>/3</div>
+          <div style="color:#ff6666;">💛 25</div>
+        </button>
+        <button onclick="shopBuyPotion('mana')" style="padding:8px;background:linear-gradient(135deg,rgba(20,30,40,.6),rgba(10,15,20,.7));border:1px solid #4080ff;border-radius:4px;cursor:pointer;font-family:inherit;color:#88aaff;font-size:8px;font-weight:700;text-align:center;pointer-events:auto;transition:all .2s;">
+          <div style="font-size:14px;margin-bottom:3px;">💙</div>
+          <div>Mana • +15 MP</div>
+          <div style="font-size:7px;margin:2px 0;color:rgba(100,150,255,.7);">Stock: <span id="mana-potion-stock">0</span>/3</div>
+          <div style="color:#6699ff;">💛 20</div>
+        </button>
+      </div>
+    </div>
+    
+    <div id="shop-footer">
+      <button id="shop-continue-btn" onclick="G.closeShop()">Revenir au jeu ›</button>
+    </div>
+  </div>
+</div>
+
+<!-- Upgrade screen -->
+<div id="upgrade-screen">
+  <div id="upgrade-panel">
+    <div id="upgrade-title">Fin du niveau</div>
+    <div id="upgrade-floor">II</div>
+    <div id="upgrade-subtitle">Choisissez une amélioration</div>
+    <div id="upgrade-cards"></div>
+    <button id="upgrade-skip" onclick="G.skipUpgrade()">Continuer ›</button>
+  </div>
+</div>
+
+<!-- Pause screen -->
+<div id="pause-screen">
+  <div id="pause-panel" style="position:relative">
+    <div id="pause-eyebrow">En pause</div>
+    <div id="pause-logo">CRYPTS</div>
+    <div id="pause-sub">of&nbsp;&nbsp;Eternity</div>
+    <div class="pause-ornament">
+      <div class="pause-ornament-line"></div>
+      <div class="pause-ornament-gem"></div>
+      <div class="pause-ornament-line"></div>
+    </div>
+    <div id="pause-stats-grid"></div>
+    <div class="pause-ornament" style="margin-top:0">
+      <div class="pause-ornament-line"></div>
+      <div class="pause-ornament-gem"></div>
+      <div class="pause-ornament-line"></div>
+    </div>
+    <div class="pause-buttons">
+      <button class="pause-btn" onclick="G.togglePause()">
+        <span class="pb-icon">▶</span>Reprendre
+      </button>
+      <button class="pause-btn" onclick="PauseUI.open('options')" onmouseenter="MenuSFX.hover()">
+        <span class="pb-icon">⚙</span>Paramètres
+      </button>
+      <button class="pause-btn" onclick="PauseUI.open('achievements')" onmouseenter="MenuSFX.hover()">
+        <span class="pb-icon">🏆</span>Succès
+      </button>
+      <button class="pause-btn" id="pause-save-btn" onclick="PauseUI.save()" onmouseenter="MenuSFX.hover()">
+        <span class="pb-icon">💾</span>Sauvegarder
+      </button>
+      <div class="pause-audio-row">
+        <div class="vol-row">
+          <span>♪</span>
+          <input type="range" id="vol-music" min="0" max="100" value="55"
+            oninput="Music.setVolume(this.value/100)">
+          <span class="vol-label" id="vol-music-val">55%</span>
+          <button class="pause-btn" style="width:auto;padding:0 10px;border:none;font-size:7.5px;letter-spacing:2px;min-width:60px"
+            onclick="Music.toggle();G.updateMusicBtn()">♪&nbsp;<span id="music-status">ON</span></button>
+        </div>
+        <div class="vol-row">
+          <span>🔊</span>
+          <input type="range" id="vol-sfx" min="0" max="100" value="55"
+            oninput="SFX.setVolume(this.value/100)">
+          <span class="vol-label" id="vol-sfx-val">55%</span>
+        </div>
+      </div>
+      <button class="pause-btn" onclick="G.restart(); G.togglePause()" onmouseenter="MenuSFX.hover()">
+        <span class="pb-icon">↺</span>Recommencer
+      </button>
+      <button class="pause-btn pause-btn-quit" onclick="PauseUI.quit()" onmouseenter="MenuSFX.hover()">
+        <span class="pb-icon">✕</span>Quitter
+      </button>
+    </div>
+    <div id="pause-version">Crypts of Eternity — v4</div>
+  </div>
+</div>
+
+<!-- ADMIN MENU (CACHÉ) -->
+<div id="admin-screen" style="position:fixed;inset:0;z-index:999;background:rgba(8,6,10,.95);display:none;pointer-events:none;opacity:0;transition:all 0.3s;backdrop-filter:blur(3px)">
+  <div id="admin-panel" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,rgba(20,15,30,.98),rgba(30,20,40,.98));border:3px solid var(--gold);padding:40px;border-radius:4px;max-height:90vh;overflow-y:auto;width:95%;max-width:800px;color:var(--gold-light);font-family:'Cinzel',serif;font-size:11px;letter-spacing:2px;box-shadow:0 0 50px rgba(201,168,76,0.3), inset 0 0 30px rgba(201,168,76,0.1)">
+    
+    <!-- HEADER -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;border-bottom:2px solid var(--gold);padding-bottom:15px">
+      <div>
+        <div style="font-size:18px;font-weight:900;color:var(--gold-light);text-shadow:0 0 10px var(--gold)">⚙ CONSOLE ADMIN</div>
+        <div style="font-size:8px;opacity:0.6;letter-spacing:4px;margin-top:5px">v1.0 — SYSTÈME DE CONTRÔLE</div>
+      </div>
+      <button onclick="AdminMenu.close()" style="background:var(--gold);color:#08060a;border:none;padding:8px 15px;cursor:pointer;font-weight:bold;font-size:16px;border-radius:3px;transition:all 0.2s;font-family:'Cinzel',serif">✕</button>
+    </div>
+
+    <!-- ONGLETS -->
+    <div style="display:flex;gap:10px;margin-bottom:25px;border-bottom:1px solid var(--gold);padding-bottom:10px;flex-wrap:wrap">
+      <button onclick="AdminMenu.showTab('stats')" class="admin-tab admin-tab-active" style="padding:8px 15px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">STATS</button>
+      <button onclick="AdminMenu.showTab('resources')" class="admin-tab" style="padding:8px 15px;background:transparent;color:var(--gold);border:1px solid var(--gold);cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">RESSOURCES</button>
+      <button onclick="AdminMenu.showTab('gameplay')" class="admin-tab" style="padding:8px 15px;background:transparent;color:var(--gold);border:1px solid var(--gold);cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">JEU</button>
+      <button onclick="AdminMenu.showTab('spawns')" class="admin-tab" style="padding:8px 15px;background:transparent;color:var(--gold);border:1px solid var(--gold);cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">SPAWNS</button>
+      <button onclick="AdminMenu.showTab('advanced')" class="admin-tab" style="padding:8px 15px;background:transparent;color:var(--gold);border:1px solid var(--gold);cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">AVANCÉ</button>
+    </div>
+
+    <!-- TAB STATS -->
+    <div id="admin-tab-stats" class="admin-tab-content" style="display:block">
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ SANTÉ & RESSOURCES</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">HP</div><input type="number" id="admin-hp" value="40" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.setStat('hp')" style="width:100%;margin-top:5px;padding:5px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:9px">APPLIQUER</button></div>
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">MANA</div><input type="number" id="admin-mp" value="20" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.setStat('mp')" style="width:100%;margin-top:5px;padding:5px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:9px">APPLIQUER</button></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ STATISTIQUES DE COMBAT</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px">
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">ATK</div><input type="number" id="admin-atk" value="6" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.setStat('atk')" style="width:100%;margin-top:5px;padding:4px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:8px">SET</button></div>
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">DEF</div><input type="number" id="admin-def" value="2" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.setStat('def')" style="width:100%;margin-top:5px;padding:4px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:8px">SET</button></div>
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">CRIT%</div><input type="number" id="admin-crit" value="0" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.setStat('crit')" style="width:100%;margin-top:5px;padding:4px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:8px">SET</button></div>
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">ESQUIVE%</div><input type="number" id="admin-dodge" value="0" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.setStat('dodge')" style="width:100%;margin-top:5px;padding:4px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:8px">SET</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB RESOURCES -->
+    <div id="admin-tab-resources" class="admin-tab-content" style="display:none">
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ PROGRESSION</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px">
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">NIVEAU</div><input type="number" id="admin-level" value="1" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.setLevel()" style="width:100%;margin-top:5px;padding:5px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:9px">APPLIQUER</button></div>
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">ÉTAGE</div><input type="number" id="admin-floor" value="1" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.goToFloor()" style="width:100%;margin-top:5px;padding:5px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:9px">ALLER À</button></div>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ ÉCONOMIE</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px">
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">OR À AJOUTER</div><input type="number" id="admin-gold" value="100" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.addGold()" style="width:100%;margin-top:5px;padding:5px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:9px">+ AJOUTER</button></div>
+          <div><div style="font-size:9px;opacity:0.7;margin-bottom:3px">XP À AJOUTER</div><input type="number" id="admin-xp" value="50" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px">
+          <button onclick="AdminMenu.addXp()" style="width:100%;margin-top:5px;padding:5px;background:var(--gold);color:#08060a;border:none;cursor:pointer;font-weight:700;font-family:'Cinzel',serif;font-size:9px">+ AJOUTER</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB GAMEPLAY -->
+    <div id="admin-tab-gameplay" class="admin-tab-content" style="display:none">
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ CONTRÔLES DE JEU</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button onclick="AdminMenu.heal()" style="padding:10px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">⚕ SOIGNER (FULL HP + MANA)</button>
+          <button onclick="AdminMenu.maxStamina()" style="padding:10px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">⚡ RESTAURER ENDURANCE</button>
+          <button onclick="AdminMenu.killAllMonsters()" style="padding:10px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">💀 TUER TOUS MONSTRES</button>
+          <button onclick="AdminMenu.nextFloor()" style="padding:10px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">➜ ÉTAGE SUIVANT</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ ÉQUIPEMENT</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button onclick="AdminMenu.addUpgrade('weapon')" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:9px">⚔ +ARME</button>
+          <button onclick="AdminMenu.addUpgrade('armor')" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:9px">🛡 +ARMURE</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB SPAWNS -->
+    <div id="admin-tab-spawns" class="admin-tab-content" style="display:none">
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ GÉNÉRER MONSTRES</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <button onclick="AdminMenu.spawnMonster('skeleton')" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:9px">🦴 Squelette</button>
+          <button onclick="AdminMenu.spawnMonster('goblin')" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:9px">👹 Gobelin</button>
+          <button onclick="AdminMenu.spawnMonster('demon')" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:9px">😈 Démon</button>
+          <button onclick="AdminMenu.spawnMonster('ghost')" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:9px">👻 Fantôme</button>
+          <button onclick="AdminMenu.spawnMonster('spider')" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:9px">🕷 Araignée</button>
+          <button onclick="AdminMenu.spawnMonster('ogre')" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:9px">🗿 Ogre</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ QUANTITÉ SPAWN</div>
+        <div><input type="number" id="admin-spawn-count" value="1" min="1" max="20" style="width:100%;padding:6px;background:rgba(8,6,10,0.8);color:var(--gold-light);border:1px solid var(--gold);font-family:'Cinzel',serif;font-size:11px"></div>
+      </div>
+    </div>
+
+    <!-- TAB ADVANCED -->
+    <div id="admin-tab-advanced" class="admin-tab-content" style="display:none">
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ PARAMÈTRES</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+            <input type="checkbox" id="admin-godmode" style="width:18px;height:18px;cursor:pointer">
+            <span>MODE DIEU (IMMUNITÉ TOTALE)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+            <input type="checkbox" id="admin-invisible" style="width:18px;height:18px;cursor:pointer">
+            <span>INVISIBILITÉ (MONSTRES IGNORENT)</span>
+          </label>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer">
+            <input type="checkbox" id="admin-speedrun" style="width:18px;height:18px;cursor:pointer">
+            <span>VITESSE X2</span>
+          </label>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px;padding:15px;background:rgba(201,168,76,0.08);border:1px solid var(--gold);border-radius:3px">
+        <div style="font-weight:900;color:var(--gold-light);margin-bottom:15px;font-size:12px">▸ UTILITAIRES</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <button onclick="AdminMenu.revealMap()" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">🗺 RÉVÉLER CARTE</button>
+          <button onclick="AdminMenu.clearExplored()" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">📍 RÉINITIALISER EXPLORATION</button>
+          <button onclick="AdminMenu.saveState()" style="padding:8px;background:var(--gold);color:#08060a;cursor:pointer;font-weight:bold;border:none;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px">💾 SAUVEGARDER ÉTAT</button>
+          <button onclick="AdminMenu.fullReset()" style="padding:8px;background:#c03030;color:#fff;cursor:pointer;font-weight:bold;border:2px solid #ff4a1c;font-family:'Cinzel',serif;font-size:10px;letter-spacing:1px;transition:all 0.2s" onmouseover="this.style.background='#e05050'" onmouseout="this.style.background='#c03030'">🔥 RÉINITIALISER COMPLÈTEMENT</button>
+        </div>
+      </div>
+
+      <div style="padding:12px;background:rgba(255,74,28,0.15);border:1px solid #ff4a1c;border-radius:3px;font-size:9px;color:#ff4a1c">
+        ⚠ ATTENTION: Les modifications peuvent cassez la sauvegarde
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <div style="text-align:center;color:var(--gold);opacity:0.5;font-size:8px;margin-top:25px;border-top:1px solid var(--gold);padding-top:15px;letter-spacing:2px">
+      [Ctrl+Shift+D] — CONSOLE ADMINISTRATIVE
+    </div>
+  </div>
+</div>
+
+<script src="js/game.js"></script>
+<script src="js/biome2.js"></script>
+</body>
+</html>
